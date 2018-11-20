@@ -3,6 +3,7 @@
 *[anoconda(python3)](https://www.anaconda.com/download/)
 
 下载安装包并安装。
+
 *python3
 
 创作一个新的环境：打开cmd工具，输入指令:

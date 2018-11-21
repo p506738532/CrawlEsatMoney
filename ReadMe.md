@@ -2,7 +2,6 @@ windows平台安装环境
 ----
  - [anoconda(python3)](https://www.anaconda.com/download/)
 
-
 下载安装包并安装。
 
  - python3
@@ -29,7 +28,6 @@ activate python3
 
  - scarpy
 
-
 使用pip安装:
 
 ```dos
@@ -40,17 +38,14 @@ pip install Scrapy
 
  - 安装Mysql数据库
  
-
 下载[Mysql数据库服务端](https://dev.mysql.com/downloads/mysql/),[安装](http://www.cnblogs.com/pengyan5945/p/9863721.html)。
 
  - 配置Mysql数据库
  
-
 导入数据库eastmoney.sql，可以使用[SQLyog工具](https://sqlyog.en.softonic.com/)快捷导入数据库。不过这个是个付费工具。
 
 配置文件
 ----
-
 文件名：config.ini
 
 配置内容：
@@ -84,7 +79,7 @@ charset = 数据库字体集，默认utf8
 文件结构
 ----
 
-![folder-struct](https://www.zybuluo.com/static/img/logo.png)
+![folder-struct](https://github.com/p506738532/CrawlEsatMoney/blob/master/FolderStruct.PNG)
 
 
 

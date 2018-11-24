@@ -1,3 +1,5 @@
+# 爬取东方财富基金数据
+
 windows平台安装环境
 ----
  - [anoconda(python3)](https://www.anaconda.com/download/)
@@ -90,3 +92,9 @@ charset = 数据库字体集，默认utf8
 cd mySpider
 scrapy crawl easymoney 
 ```
+执行结果
+----
+
+收件邮箱收到一封邮件，如下图所示：
+
+![email](https://github.com/p506738532/CrawlEsatMoney/blob/master/email.png)

@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Administrator'
+'''
+文件名：FundTactics.py
+作用：分析基金数据，绘制折线图。
+'''
 import pymysql
 import os
 import pandas as pd
@@ -349,7 +353,7 @@ class FundTactics():
         self.plotExpectValue(7)
         self.plotExpectValue(30)
         self.parseExpectValue()
-        self.sendEmail()
+        # self.sendEmail()
 # ts = pd.Series(np.random.randn(1000), index=pd.date_range('1/1/2000', periods=1000))
 # ts = ts.cumsum()
 # plt.plot(ts)

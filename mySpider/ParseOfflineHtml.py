@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Administrator'
+'''
+文件名：ParseOfflineHtml.py
+作用：利用xpath工具解析Html文件，获取其中的单位净值和估计值。将获取到的值上传的Mysql数据库中。
+'''
 import pymysql
 import time
 from lxml import etree

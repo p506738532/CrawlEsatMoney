@@ -8,17 +8,6 @@
 import scrapy
 
 
-class MyspiderItem(scrapy.Item):
-    name = scrapy.Field()
-    level = scrapy.Field()
-    info = scrapy.Field()
-
-class ItcastItem(scrapy.Item):
-    name = scrapy.Field()
-    level = scrapy.Field()
-    info = scrapy.Field()
-    title = scrapy.Field()
-
 class EasyMoneyItem(scrapy.Item):
     name = scrapy.Field()
     detailLink = scrapy.Field()

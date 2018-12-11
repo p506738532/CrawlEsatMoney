@@ -98,5 +98,5 @@ class ParseOfflineHtml():
             db.commit()
         # 关闭数据库连接
         db.close()
-parse = ParseOfflineHtml()
-parse.parse("jjjz_110003.html")
+# parse = ParseOfflineHtml()
+# parse.parse("jjjz_110003.html")

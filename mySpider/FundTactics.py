@@ -98,8 +98,9 @@ class FundTactics():
             else:
                 break;
             index -=1
-        self.expectValueStr = "当前估计值：%.2f ,日变化幅度：%.2f %%，最小值天数：%d ,最大值天数：%d" \
-                              % (self.m_fundInfo.m_expectDateValue["fundValue"],changedDayly,minDays,maxDays)
+        self.expectValueStr = "当前日期：%s,当前估计值：%.4f ,日变化幅度：%.2f %%，最小值天数：%d ,最大值天数：%d" \
+                              % (self.m_fundInfo.m_expectDateValue["fundDate"],
+                                 self.m_fundInfo.m_expectDateValue["fundValue"],changedDayly,minDays,maxDays)
         print("最小值天数：",minDays,"最大值天数：",maxDays)
     #用估计值绘图，参照plotData
     #days绘制近days天的点
@@ -121,6 +122,7 @@ class FundTactics():
         #加入估计值
         netDateValue["fundDate"].append(expectDateValue["fundDate"])
         netDateValue["fundValue"].append(expectDateValue["fundValue"])
+        print("expect date:",expectDateValue["fundDate"],"value:",expectDateValue["fundValue"])
         averageValue = np.mean(netDateValue["fundValue"][dayDelta:])
         fig = plt.figure()
         df = pd.DataFrame({"fundValue:%.3f"%expectDateValue["fundValue"]:netDateValue["fundValue"][dayDelta:],

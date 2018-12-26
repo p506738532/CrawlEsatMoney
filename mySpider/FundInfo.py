@@ -23,6 +23,7 @@ class FundInfo():
     m_fundDays = [ FundOneDay() ]#每天的基金点FundOneDay列表，日期升序
     dateCountList =[] #[日期,对应当日份额]列表
     def __init__(self):
+        print("FundInfo() __init__")
         #从数据库获取单位净值
         self.downloadData()
         #从数据库获取估计净值

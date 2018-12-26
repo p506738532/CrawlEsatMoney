@@ -11,7 +11,7 @@ import numpy as np
 from pandas import Series, DataFrame
 import matplotlib.pyplot as plt
 import matplotlib
-
+import platform
 from datetime import datetime
 from datetime import date
 from datetime import timedelta
@@ -27,20 +27,34 @@ from mySpider import Configure
 from mySpider.FundInfo import FundInfo
 
 matplotlib.style.use('ggplot')
-
+def isRightIndexOfList(list,index) :
+    if len(list) == 0 :
+        return False
+    if index <0 :
+        if len(list) >= index * -1 :
+            return True
+        else:
+            return False
+    else :
+        if len(list) > index:
+            return True
+        else:
+            return False
 #用来分析基金净值的变化卖出份数
 class FundTactics():
     #卖出手续费率有4个档，持有天数[0,7)，1.50%，[7,365)0.5%,[365,730)0.25%,[730,无穷)0%
     sellRateList = [0.985,0.995,0.9975,1.0]
     #图片保存路径
     imagePath = "./figure"
-    #存储全部日期的基金数据
-    m_fundInfo = FundInfo()
+
     def __init__(self):
+        #输出构造信息
+        print("FundTactics __init__()")
         #新建存储图片的路径
         if os.path.isdir(self.imagePath) == False :
             os.mkdir(self.imagePath)
-
+        #存储全部日期的基金数据
+        self.m_fundInfo = FundInfo()
     #从数据库中获取数据
     def plotData(self):
         #根据时间选择数据,最近30天数据
@@ -75,9 +89,11 @@ class FundTactics():
         changedDayly = 1.0 #较前一天变化
         changedbool = False #变化量计算标志位，False：还没计算，True：已经计算
         minDays = 0 #最小估值天数
-        while self.m_fundInfo.m_expectDateValue["fundDate"] <= self.m_fundInfo.fundDayList()[index] :
+        while isRightIndexOfList(self.m_fundInfo.fundDayList(),index) \
+                and self.m_fundInfo.m_expectDateValue["fundDate"] <= self.m_fundInfo.fundDayList()[index] :
             index -=1
-        while self.m_fundInfo.m_expectDateValue["fundDate"] > self.m_fundInfo.fundDayList()[index] :
+        while isRightIndexOfList(self.m_fundInfo.fundDayList(),index) \
+                and self.m_fundInfo.m_expectDateValue["fundDate"] > self.m_fundInfo.fundDayList()[index] :
             if changedbool == False :
                 changedbool = True
                 changedDayly = (self.m_fundInfo.m_expectDateValue["fundValue"] - self.m_fundInfo.fundValueList()[index]) / \
@@ -90,9 +106,11 @@ class FundTactics():
         #计算估计值是近几天的最高值
         maxDays = 0 #最大估值天数
         index = -1
-        while self.m_fundInfo.m_expectDateValue["fundDate"] <= self.m_fundInfo.fundDayList()[index] :
+        while isRightIndexOfList(self.m_fundInfo.fundDayList(),index) \
+                and self.m_fundInfo.m_expectDateValue["fundDate"] <= self.m_fundInfo.fundDayList()[index] :
             index -=1
-        while self.m_fundInfo.m_expectDateValue["fundDate"] > self.m_fundInfo.fundDayList()[index] :
+        while isRightIndexOfList(self.m_fundInfo.fundDayList(),index) \
+                and self.m_fundInfo.m_expectDateValue["fundDate"] > self.m_fundInfo.fundDayList()[index] :
             if self.m_fundInfo.m_expectDateValue["fundValue"] >=  self.m_fundInfo.fundValueList()[index]:
                 maxDays +=1
             else:
@@ -130,7 +148,7 @@ class FundTactics():
                           netDateValue["fundDate"][dayDelta:]
                           )
         df.plot()
-        plt.legend(loc='best')
+        plt.legend(bbox_to_anchor=(0.5, -0.25),loc='lower center')
         # tradeDateValue = self.m_fundInfo.m_tradeDateValue
         tradeDateValue = self.m_fundInfo.recentTradeRecord(days)
         # print(tradeDateValue)
@@ -153,6 +171,59 @@ class FundTactics():
         plt.savefig( self.imagePath + "/plot%ddays.png"%(days) )
         # plt.show()
     def sendEmail(self):
+        sysstr = platform.system()
+        if(sysstr =="Windows"):
+            print ("Call Windows tasks")
+            self.sendEmailWithSina()
+        elif(sysstr == "Linux"):
+            print ("Call Linux tasks")
+            self.sendEmailWithPostfix()
+        else :
+            print("system error!")
+    def sendEmailWithPostfix(self):
+        #邮件发送配置
+        my_sender="ccbang@2.ccbangpersonal.xyz"    # 发件人邮箱账号
+        my_pass = "dig1221"              # 发件人邮箱密码
+        my_user= Configure.emailReceiver      # 收件人邮箱账号
+        #设置邮件表头
+        msgRoot = MIMEMultipart('related')
+        msgRoot['From'] = formataddr(["基金分析小组",my_sender])
+        msgRoot['To'] =  formataddr(["chenxi.pang",my_user])
+        subject = '易方达上证50基金分析'
+        msgRoot['Subject'] = Header(subject, 'utf-8')
+
+        msgAlternative = MIMEMultipart('alternative')
+        msgRoot.attach(msgAlternative)
+        #构造html
+        mail_msg = """
+        <p>%s</p>
+        <p>%s</p>
+        <p>%s</p>
+        <p>最近一周走势：</p>
+        <p><img src="cid:image1"></p>
+        <p>最近一月走势：</p>
+        <p><img src="cid:image2"></p>
+        """% (subject,self.expectValueStr,self.m_fundInfo.m_foundInfo)
+        print(mail_msg)
+        msgAlternative.attach(MIMEText(mail_msg, 'html', 'utf-8'))
+        # 指定图片为当前目录
+        fp = open('./figure/plot7days.png', 'rb')
+        msgImage = MIMEImage(fp.read())
+        fp.close()
+        # 定义图片 ID，在 HTML 文本中引用
+        msgImage.add_header('Content-ID', '<image1>')
+        msgRoot.attach(msgImage)
+        # 指定图片为当前目录
+        fp = open('./figure/plot30days.png', 'rb')
+        msgImage = MIMEImage(fp.read())
+        fp.close()
+        # 定义图片 ID，在 HTML 文本中引用
+        msgImage.add_header('Content-ID', '<image2>')
+        msgRoot.attach(msgImage)
+        server = smtplib.SMTP("localhost")
+        server.sendmail(my_sender,[my_user,],msgRoot.as_string())  # 括号中对应的是发件人邮箱账号、收件人邮箱账号、发送邮件
+        server.quit()  # 关闭连接
+    def sendEmailWithSina(self):
         #邮件发送配置
         my_sender=Configure.emailSender    # 发件人邮箱账号
         my_pass = Configure.emailPassword              # 发件人邮箱密码

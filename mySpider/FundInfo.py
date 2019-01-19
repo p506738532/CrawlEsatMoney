@@ -10,6 +10,19 @@ from datetime import date
 from datetime import timedelta
 import csv
 from mySpider import Configure
+def isRightIndexOfList(list,index) :
+    if len(list) == 0 :
+        return False
+    if index <0 :
+        if len(list) >= index * -1 :
+            return True
+        else:
+            return False
+    else :
+        if len(list) > index:
+            return True
+        else:
+            return False
 #基金一天的数据，包括单位净值，预计值，交易净值等
 class FundOneDay():
     m_date = datetime.strptime('1992-6-8','%Y-%m-%d').date()#日期，
@@ -20,7 +33,7 @@ class FundOneDay():
     m_keepCount = 0.00      #持有份额
 #基金历史数据类，读取基金的交易日单位净值，一个基民的交易记录
 class FundInfo():
-    m_fundDays = [ FundOneDay() ]#每天的基金点FundOneDay列表，日期升序
+    m_fundDays = [  ]#每天的基金点FundOneDay列表，日期升序
     dateCountList =[] #[日期,对应当日份额]列表
     def __init__(self):
         print("FundInfo() __init__")
@@ -144,6 +157,15 @@ class FundInfo():
                 fundValueList += [fundValue]
                 self.setTradeValue(fundDate,fundValue)
             self.m_tradeRecord = {"fundDate":fundDateList,"fundValue":fundValueList}
+    #近days天(从1开始），净买入的钱数
+    def BuyCountRecentDays(self,days):
+        buyCount = 0.0 #购买金额初始化
+        if days == 0 :
+            return buyCount
+
+        for fundOneDay in self.m_fundDays[days*-1:]:
+            buyCount += fundOneDay.m_tradeValue
+        return buyCount
     #计算持有份额
     '''
     定投收益分析，买入手续费0.15%，卖出手续费0.5%,三天单位收益分别为15,5,10，前两天定投100元，第三天卖出，求收益率。
@@ -204,9 +226,10 @@ class FundInfo():
         self.countLonger7 = self.keepTimeLonger7(date.today())
         print("现金投入：",buyMoney - sellMoney )
         self.m_foundInfo = """持有时长大于7天的份额%.2f
-        持有总份额:%d , 持有市值:%.2f ,持仓成本:%.2f，现金投入：%.2f , 累计收益：%.2f
-        """ % (self.countLonger7,fundCount,self.latestValue * fundCount,(buyMoney - sellMoney)/fundCount,buyMoney - sellMoney ,
-        self.latestValue * fundCount + sellMoney - buyMoney )
+        持有总份额:%d , 最新净值：%.4f(%s),持有市值:%.2f ,持仓成本:%.2f，现金投入：%.2f ,近30天现金投入：%.2f， 累计收益：%.2f
+        """ % (self.countLonger7,fundCount,self.latestValue,self.fundDayList()[-1],self.latestValue * fundCount,
+               (buyMoney - sellMoney)/fundCount,buyMoney - sellMoney ,
+        self.BuyCountRecentDays(30),self.latestValue * fundCount + sellMoney - buyMoney )
 
     #测试数据读取是否正确
     def printData(self):

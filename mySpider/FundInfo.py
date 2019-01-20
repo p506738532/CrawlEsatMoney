@@ -20,7 +20,7 @@ class FundOneDay():
     m_keepCount = 0.00      #持有份额
 #基金历史数据类，读取基金的交易日单位净值，一个基民的交易记录
 class FundInfo():
-    m_fundDays = [ FundOneDay() ]#每天的基金点FundOneDay列表，日期升序
+    m_fundDays = [ ]#每天的基金点FundOneDay列表，日期升序
     dateCountList =[] #[日期,对应当日份额]列表
     def __init__(self):
         #从数据库获取单位净值

@@ -42,19 +42,21 @@ def isRightIndexOfList(list,index) :
             return False
 #用来分析基金净值的变化卖出份数
 class FundTactics():
-    #卖出手续费率有4个档，持有天数[0,7)，1.50%，[7,365)0.5%,[365,730)0.25%,[730,无穷)0%
+    # 卖出手续费率有4个档，持有天数[0,7)，1.50%，[7,365)0.5%,[365,730)0.25%,[730,无穷)0%
     sellRateList = [0.985,0.995,0.9975,1.0]
-    #图片保存路径
+    # 图片保存路径
     imagePath = "./figure"
 
     def __init__(self):
-        #输出构造信息
+        # 输出构造信息
         print("FundTactics __init__()")
         #新建存储图片的路径
         if os.path.isdir(self.imagePath) == False :
             os.mkdir(self.imagePath)
-        #存储全部日期的基金数据
+        # 存储全部日期的基金数据
         self.m_fundInfo = FundInfo()
+        # 初始化变量
+        self.send_sms_bool = False
     #从数据库中获取数据
     def plotData(self):
         #根据时间选择数据,最近30天数据
@@ -120,8 +122,20 @@ class FundTactics():
                               % (self.m_fundInfo.m_expectDateValue["fundDate"],
                                  self.m_fundInfo.m_expectDateValue["fundValue"],changedDayly,minDays,maxDays)
         print("最小值天数：",minDays,"最大值天数：",maxDays)
-    #用估计值绘图，参照plotData
-    #days绘制近days天的点
+        # 判断是否符合发送短信的条件，及最大值天数或者最小值天数大于7天
+        threshold_days = 7
+        self.send_sms_bool = False
+        self.short_message = ''
+        if minDays > threshold_days :
+            self.send_sms_bool = True
+            self.short_message = "%d天最小值" % minDays
+        elif maxDays > threshold_days:
+            self.send_sms_bool = True
+            self.short_message = "%d天最大值" % maxDays
+
+    # 用估计值绘图，参照plotData
+    # days绘制近days天的点
+
     def plotExpectValue(self,days = 6):
         netDateValue = {"fundDate":self.m_fundInfo.fundDayList(),"fundValue":self.m_fundInfo.fundValueList()}
         #根据时间选择数据,最近30天数据
@@ -204,7 +218,7 @@ class FundTactics():
         <p>最近一月走势：</p>
         <p><img src="cid:image2"></p>
         """% (subject,self.expectValueStr,self.m_fundInfo.m_foundInfo)
-        print(mail_msg)
+        print(mail_msg,'receiver:',my_user)
         msgAlternative.attach(MIMEText(mail_msg, 'html', 'utf-8'))
         # 指定图片为当前目录
         fp = open('./figure/plot7days.png', 'rb')
@@ -247,7 +261,7 @@ class FundTactics():
         <p>最近一月走势：</p>
         <p><img src="cid:image2"></p>
         """% (subject,self.expectValueStr,self.m_fundInfo.m_foundInfo)
-        print(mail_msg)
+        print(mail_msg,'receiver:',my_user)
         msgAlternative.attach(MIMEText(mail_msg, 'html', 'utf-8'))
         # 指定图片为当前目录
         fp = open('./figure/plot7days.png', 'rb')
@@ -268,14 +282,41 @@ class FundTactics():
         server.login(my_sender,my_pass)  # 括号中对应的是发件人邮箱账号、邮箱密码
         server.sendmail(my_sender,[my_user,],msgRoot.as_string())  # 括号中对应的是发件人邮箱账号、收件人邮箱账号、发送邮件
         server.quit()  # 关闭连接
+
+    # 通过腾讯云平台发送短信
+    def send_sm_by_tence(self):
+        from qcloudsms_py import SmsSingleSender
+        from qcloudsms_py.httpclient import HTTPError
+
+        ssender = SmsSingleSender(Configure.sms_appid, Configure.sms_appkey)
+        params = [self.short_message]  # 当模板没有参数时，`params = []`，数组具体的元素个数和模板中变量个数必须一致，
+        # 例如事例中templateId:5678对应一个变量，参数数组中元素个数也必须是一个
+        try:
+            result = ssender.send_with_param(86, Configure.sms_phone_number,
+                                             Configure.sms_template_id, params, sign=Configure.sms_sign, extend="",
+                                             ext="")  # 签名参数未提供或者为空时，会使用默认签名发送短信
+        except HTTPError as e:
+            print(e)
+        except Exception as e:
+            print(e)
+
+        print(result)
+
+    # 发送短信
+    def send_short_message(self):
+        if self.send_sms_bool:
+            print("send_short_message")
+            self.send_sm_by_tence()
+
     def RunTactics(self):
         self.plotExpectValue(7)
         self.plotExpectValue(30)
         self.parseExpectValue()
-        self.sendEmail()
-# ts = pd.Series(np.random.randn(1000), index=pd.date_range('1/1/2000', periods=1000))
-# ts = ts.cumsum()
-# plt.plot(ts)
-# plt.show()
-# tactics = FundTactics()
-# tactics.RunTactics()
+        # self.sendEmail()
+        self.send_short_message()
+
+
+if __name__=='__main__':
+    tactics = FundTactics()
+    tactics.RunTactics()
+

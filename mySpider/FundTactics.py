@@ -312,7 +312,7 @@ class FundTactics():
         self.plotExpectValue(7)
         self.plotExpectValue(30)
         self.parseExpectValue()
-        # self.sendEmail()
+        self.sendEmail()
         self.send_short_message()
 
 

@@ -174,8 +174,8 @@ class FundInfo():
     收益率=5.36/200=2.68%
     '''
     def computeKeepCount(self):
-        buyRate = 0.9985
-        fundCount = 0.0#持有份数
+        buyRate = 1.0  #0.9985
+        fundCount = 0.0  #持有份数
         sellMoney = 0.0#卖出基金得到的钱
         buyMoney = 0.0#买基金花的钱
         #全局变量清零
@@ -184,6 +184,8 @@ class FundInfo():
         for index in range(len(self.m_fundDays ) ):
             tradeDate = self.m_fundDays[index].m_date#交易日期
             tradeRate = float(self.m_fundDays[index].m_tradeValue)#交易钱数
+            if tradeRate == 0 :
+                continue
             #找到了净值
             fundValue = self.fundUnitValue(tradeDate)
             #交易的份额
@@ -217,6 +219,7 @@ class FundInfo():
                 buyMoney += tradeRate
                 self.dateCountList.append([tradeDate,tradeRate*buyRate/fundValue])
                 self.m_fundDays[index].m_tradeCount = tradeRate*buyRate/fundValue #保存这天买入的份数
+                #  sellCount = -1 * tradeRate*buyRate/fundValue#买入的份数test
             self.m_fundDays[index].m_keepCount = fundCount #保存这天的持有份额
         # 持仓成本=投入的钱数/持有份额，与支付宝计算有偏差，不知道它怎么算的
         self.latestValue = self.fundValueList()[-1]
@@ -232,19 +235,22 @@ class FundInfo():
         self.BuyCountRecentDays(30),self.latestValue * fundCount + sellMoney - buyMoney )
 
     #测试数据读取是否正确
-    def printData(self):
-        file = open( "test.log" ,"w" )
-        for fundOneDay in self.m_fundDays:
-            file.write(
-                "%s,date:%s,expectValue:%.2f ,netValue:%f,tradeValue:%.2f,tradeCount:%.2f,keeyCount:%.2f \n " %
-                (type(fundOneDay.m_date),fundOneDay.m_date,fundOneDay.m_expectValue,fundOneDay.m_netValue,
-                 fundOneDay.m_tradeValue,fundOneDay.m_tradeCount,fundOneDay.m_keepCount)
-            )
-        file.close()
+    def printData(self,sellCount):
+        self.logFile = open("test.log", "w")
+        # for fundOneDay in self.m_fundDays:
+        #     file.write(
+        #         "%s,date:%s,expectValue:%.2f ,netValue:%f,tradeValue:%.2f,tradeCount:%.2f,keeyCount:%.2f \n " %
+        #         (type(fundOneDay.m_date),fundOneDay.m_date,fundOneDay.m_expectValue,fundOneDay.m_netValue,
+        #          fundOneDay.m_tradeValue,fundOneDay.m_tradeCount,fundOneDay.m_keepCount)
+        #     )
+        for oDateCount in self.dateCountList:
+            self.logFile.write( "sellCount:%.2f,date:%s,count:%.2f\r\n" % (sellCount,oDateCount[0],oDateCount[1]) )
     #求卖出时的卖出费率；date:卖出日期
     def sellRate(self,date):
-        #卖出手续费率有4个档，持有天数[0,7)，1.50%，[7,365)0.5%,[365,730)0.25%,[730,无穷)0%
-        sellRateList = [0.985,0.995,0.9975,1.0]
+        #卖出手续费率有4个档，持有天数[0,7)，1.50%，[7,365)0.0%,[365,730)0.0%,[730,无穷)0%
+        sellRateList = [0.985, 1.0, 1.0, 1.0]
+        if len(self.dateCountList) == 0:
+            print("error: sell error.len(self.dateCountList) = %f " % len(self.dateCountList) )
         keepTime = (date - self.dateCountList[0][0])/timedelta(days=1) #持有时间
         if  keepTime >= 730 :
             return sellRateList[3]

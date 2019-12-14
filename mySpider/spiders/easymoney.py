@@ -7,7 +7,7 @@ from mySpider.FundTactics import FundTactics
 class EasymoneySpider(scrapy.Spider):
     name = 'easymoney'
     allowed_domains = ['eastmoney.com']
-    start_urls = ['http://fundf10.eastmoney.com/jjjz_110003.html']
+    start_urls = ['http://fundf10.eastmoney.com/jjjz_004746.html']
 
     def parse(self, response):
         fileName = "jjjz_110003.html"

@@ -307,14 +307,38 @@ class FundTactics():
         if self.send_sms_bool:
             print("send_short_message")
             self.send_sm_by_tence()
+    # 发送本地短信
+    def sendLocalMsg(self):
+        if self.send_sms_bool:
+            recieve_phone = '15652954496'
+            cmd_str_list = ['adb shell input keyevent 26',
+                            'sleep 1',
+                            'adb shell am start -a android.intent.action.SENDTO -d sms:%s --es sms_body "%s" --ez exit_on_sent true'
+                            % (recieve_phone,'来自上证50的提醒:'+self.short_message),
+                            'sleep 1',
+                            'adb shell input keyevent 61',
+                            'sleep 1',
+                            'adb shell input keyevent 66',
+                            'adb shell input keyevent 26'
+                            ]
+            for cmd_str in cmd_str_list:
+                os.system(cmd_str)
 
     def RunTactics(self):
         self.plotExpectValue(7)
         self.plotExpectValue(30)
         self.parseExpectValue()
-        self.sendEmail()
-        self.send_short_message()
-
+        #周末不发送短信或邮件
+        now = (datetime.utcnow() + timedelta(hours=8)) #utc+8时区，北京时区
+        weekday = now.weekday()
+        if weekday == 5 or weekday == 6:
+            pass
+        else:
+            self.sendEmailWithSina()
+            try :
+                self.sendLocalMsg()
+            except:
+                print('send local sms error')
 
 if __name__=='__main__':
     tactics = FundTactics()
